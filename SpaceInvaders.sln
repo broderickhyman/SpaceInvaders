@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2003
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceInvaders", "SpaceInvaders\SpaceInvaders.csproj", "{7C70316C-CEAC-44C1-BE93-FC5A8EEA9C38}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7C70316C-CEAC-44C1-BE93-FC5A8EEA9C38}.Debug|x86.ActiveCfg = Debug|x86
+		{7C70316C-CEAC-44C1-BE93-FC5A8EEA9C38}.Debug|x86.Build.0 = Debug|x86
+		{7C70316C-CEAC-44C1-BE93-FC5A8EEA9C38}.Release|x86.ActiveCfg = Release|x86
+		{7C70316C-CEAC-44C1-BE93-FC5A8EEA9C38}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0596F1D4-2AA3-4362-AC4E-3169C37C96C3}
+	EndGlobalSection
+EndGlobal
