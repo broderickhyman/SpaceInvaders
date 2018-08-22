@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,14 +14,20 @@ namespace SpaceInvaders
   public class MainGame : Game
   {
     private SpriteBatch spriteBatch;
+    private SpriteFont spriteFont;
     private readonly GraphicsDeviceManager graphics;
     private readonly EnemyGrid enemyGrid;
     private readonly Player player;
     private readonly List<Bullet> bullets = new List<Bullet>();
     private readonly List<Bullet> removableBullets = new List<Bullet>();
-    public static float WindowWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2;
-    public static float WindowHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2;
+    public static float WindowWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 3f;
+    public static float WindowHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 1.25f;
     private Bullet playerBullet;
+    private Bullet enemyBullet;
+    public static Random Random = new Random();
+    private int frameRate;
+    private int frameCounter;
+    private TimeSpan elapsedTime = TimeSpan.Zero;
 
     public MainGame()
     {
@@ -46,8 +53,8 @@ namespace SpaceInvaders
       Player.Initialize();
       Bullet.Initialize();
       Enemy.Initialize();
-      playerBullet = new Bullet(player);
-      bullets.Add(playerBullet);
+      //playerBullet = new Bullet(player);
+      //bullets.Add(playerBullet);
       base.Initialize();
     }
 
@@ -58,6 +65,7 @@ namespace SpaceInvaders
     protected override void LoadContent()
     {
       spriteBatch = new SpriteBatch(GraphicsDevice);
+      spriteFont = Content.Load<SpriteFont>("Main");
     }
 
     /// <summary>
@@ -88,6 +96,15 @@ namespace SpaceInvaders
 
       enemyGrid.Update(gameTime);
 
+      if (enemyBullet == default(Bullet))
+      {
+        enemyBullet = enemyGrid.GetBullet();
+        if (enemyBullet != null)
+        {
+          bullets.Add(enemyBullet);
+        }
+      }
+
       player.Update(gameTime);
       foreach (var bullet in bullets)
       {
@@ -103,7 +120,18 @@ namespace SpaceInvaders
 
       if (playerBullet?.Disposing == true) { playerBullet = default(Bullet); }
 
+      if (enemyBullet?.Disposing == true) { enemyBullet = default(Bullet); }
+
       base.Update(gameTime);
+
+      elapsedTime += gameTime.ElapsedGameTime;
+
+      if (elapsedTime > TimeSpan.FromSeconds(1))
+      {
+        elapsedTime -= TimeSpan.FromSeconds(1);
+        frameRate = frameCounter;
+        frameCounter = 0;
+      }
     }
 
     /// <summary>
@@ -112,15 +140,19 @@ namespace SpaceInvaders
     /// <param name="gameTime">Provides a snapshot of timing values.</param>
     protected override void Draw(GameTime gameTime)
     {
+      frameCounter++;
       GraphicsDevice.Clear(Color.Black);
 
       foreach (var bullet in bullets) { bullet.Draw(spriteBatch); }
       player.Draw(spriteBatch);
 
       enemyGrid.Draw(spriteBatch);
-      //spriteBatch.Begin();
-      //spriteBatch.DrawLine(WindowWidth / 2, 0, WindowWidth / 2, WindowHeight, Color.Red);
-      //spriteBatch.End();
+
+      string fps = string.Format("FPS: {0}", frameRate);
+
+      spriteBatch.Begin();
+      spriteBatch.DrawString(spriteFont, fps, new Vector2(0, 0), Color.Green);
+      spriteBatch.End();
 
       base.Draw(gameTime);
     }

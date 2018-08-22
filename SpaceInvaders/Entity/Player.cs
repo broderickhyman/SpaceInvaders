@@ -23,8 +23,10 @@ namespace SpaceInvaders
     {
       var width = MainGame.WindowWidth / 15;
       var height = MainGame.WindowHeight / 20;
+      var x = (MainGame.WindowWidth / 2) - (width / 2);
+      var y = MainGame.WindowHeight - (height / 2) - (MainGame.WindowHeight / 20);
       Speed = speed;
-      rectangle = new RectangleF((MainGame.WindowWidth / 2) - (width / 2), MainGame.WindowHeight - (height / 2) - (MainGame.WindowHeight / 10), width, height);
+      rectangle = new RectangleF(x, y, width, height);
     }
 
     public static void Initialize()

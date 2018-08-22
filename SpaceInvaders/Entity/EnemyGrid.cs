@@ -12,12 +12,14 @@ namespace SpaceInvaders
   internal class EnemyGrid : IEntityGroup
   {
     private readonly List<List<Enemy>> columns = new List<List<Enemy>>();
+    private readonly List<Enemy> bottomEnemies = new List<Enemy>();
     private RectangleF boundingRectangle;
     public Color Color { get; } = Color.White;
     public bool Disposing { get; private set; }
 
     private Direction direction = Direction.Right;
     private const float shiftAmount = 20f;
+    private const float shiftSeconds = 0.5f;
     private TimeSpan previousUpdate = TimeSpan.Zero;
     private TimeSpan previousRemoval = TimeSpan.Zero;
 
@@ -35,10 +37,13 @@ namespace SpaceInvaders
         columns.Add(column);
         for (var r = 0; r < rows; r++)
         {
-          column.Add(new Enemy((sideGapPercentage * MainGame.WindowWidth) + (c * (Enemy.Width + xGap)), topOffset + (r * (Enemy.Height + yGap)))
+          var enemy = new Enemy((sideGapPercentage * MainGame.WindowWidth) + (c * (Enemy.Width + xGap)), topOffset + (r * (Enemy.Height + yGap)));
+          if (r == rows - 1)
           {
-            BottomEnemy = r == rows - 1
-          });
+            enemy.BottomEnemy = true;
+            bottomEnemies.Add(enemy);
+          }
+          column.Add(enemy);
         }
       }
     }
@@ -50,14 +55,14 @@ namespace SpaceInvaders
 
     public void Update(GameTime gameTime)
     {
-      double enemyCount = columns.SelectMany(x => x).Count() + 1;
-      if (gameTime.TotalGameTime - previousRemoval > TimeSpan.FromSeconds((1 - (enemyCount / 50)) * 2))
-      {
-        previousRemoval = gameTime.TotalGameTime;
-        RemoveRandomEnemy();
-      }
+      //double enemyCount = columns.SelectMany(x => x).Count() + 1;
+      //if (gameTime.TotalGameTime - previousRemoval > TimeSpan.FromSeconds((1 - (enemyCount / 50)) * 2))
+      //{
+      //  previousRemoval = gameTime.TotalGameTime;
+      //  RemoveRandomEnemy();
+      //}
 
-      if (gameTime.TotalGameTime - previousUpdate > TimeSpan.FromSeconds(0.1))
+      if (gameTime.TotalGameTime - previousUpdate > TimeSpan.FromSeconds(shiftSeconds))
       {
         previousUpdate = gameTime.TotalGameTime;
         CalculateBoundingRectangle();
@@ -88,16 +93,25 @@ namespace SpaceInvaders
       }
     }
 
+    public Bullet GetBullet()
+    {
+      if (bottomEnemies.Count > 0)
+      {
+        var enemy = bottomEnemies[MainGame.Random.Next(0, bottomEnemies.Count)];
+        return new Bullet(enemy);
+      }
+      return null;
+    }
+
     private void RemoveRandomEnemy()
     {
-      var rand = new Random();
       if (columns.Count > 0)
       {
-        var col = rand.Next(0, columns.Count);
+        var col = MainGame.Random.Next(0, columns.Count);
         var rowCount = columns[col].Count;
         if (rowCount > 0)
         {
-          var row = rand.Next(0, columns[col].Count);
+          var row = MainGame.Random.Next(0, columns[col].Count);
           columns[col].RemoveAt(row);
           if (rowCount == 1 && columns.Count > 0)
             columns.RemoveAt(col);
@@ -133,10 +147,15 @@ namespace SpaceInvaders
 
     private void UpdateBottomEnemies()
     {
+      bottomEnemies.Clear();
       foreach (var column in columns)
       {
         var last = column.Last();
-        if (last != null) { last.BottomEnemy = true; }
+        if (last != null)
+        {
+          last.BottomEnemy = true;
+          bottomEnemies.Add(last);
+        }
       }
     }
   }
