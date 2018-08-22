@@ -43,7 +43,9 @@
   <ItemGroup>
     <Compile Include="Entity\Bullet.cs" />
     <Compile Include="Entity\Enemy.cs" />
+    <Compile Include="Entity\EnemyGrid.cs" />
     <Compile Include="Entity\IEntity.cs" />
+    <Compile Include="Entity\IEntityGroup.cs" />
     <Compile Include="MainGame.cs" />
     <Compile Include="Entity\Player.cs" />
     <Compile Include="Program.cs" />

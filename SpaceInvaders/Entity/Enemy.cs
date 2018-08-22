@@ -12,15 +12,20 @@ namespace SpaceInvaders
 {
   internal class Enemy : IEntity
   {
+    public static float Width = MainGame.WindowWidth / 20;
+    public static float Height = MainGame.WindowHeight / 25;
+
     private RectangleF rectangle;
 
-    public float Speed { get; set; }
-    public RectangleF Rectangle { get => rectangle; private set { } }
     public Color Color { get; } = Color.White;
+    public bool Disposing { get; private set; }
+    public bool BottomEnemy { get; set; }
+    public float Speed { get; set; }
+    public ref RectangleF Rectangle { get => ref rectangle; }
 
-    public Enemy(RectangleF rectangle)
+    public Enemy(float x, float y)
     {
-      this.rectangle = rectangle;
+      rectangle = new RectangleF(x, y, Width, Height);
     }
 
     public static void Initialize()
@@ -35,8 +40,10 @@ namespace SpaceInvaders
 
     public void Draw(SpriteBatch spriteBatch)
     {
+      var color = Color;
+      if (BottomEnemy) { color = Color.Red; }
       spriteBatch.Begin();
-      spriteBatch.FillRectangle(rectangle, Color);
+      spriteBatch.FillRectangle(rectangle, color);
       spriteBatch.End();
     }
   }

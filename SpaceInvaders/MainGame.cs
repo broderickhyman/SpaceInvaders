@@ -12,8 +12,9 @@ namespace SpaceInvaders
   /// </summary>
   public class MainGame : Game
   {
-    private readonly GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
+    private readonly GraphicsDeviceManager graphics;
+    private readonly EnemyGrid enemyGrid;
     private readonly Player player;
     private readonly List<Bullet> bullets = new List<Bullet>();
     private readonly List<Bullet> removableBullets = new List<Bullet>();
@@ -31,6 +32,7 @@ namespace SpaceInvaders
       Window.Position = new Point((GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2) - (graphics.PreferredBackBufferWidth / 2), (GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2) - (graphics.PreferredBackBufferHeight / 2));
       Content.RootDirectory = "Content";
       player = new Player(1.5f);
+      enemyGrid = new EnemyGrid(10, 5);
     }
 
     /// <summary>
@@ -84,6 +86,8 @@ namespace SpaceInvaders
         bullets.Add(playerBullet);
       }
 
+      enemyGrid.Update(gameTime);
+
       player.Update(gameTime);
       foreach (var bullet in bullets)
       {
@@ -112,6 +116,8 @@ namespace SpaceInvaders
 
       foreach (var bullet in bullets) { bullet.Draw(spriteBatch); }
       player.Draw(spriteBatch);
+
+      enemyGrid.Draw(spriteBatch);
       //spriteBatch.Begin();
       //spriteBatch.DrawLine(WindowWidth / 2, 0, WindowWidth / 2, WindowHeight, Color.Red);
       //spriteBatch.End();

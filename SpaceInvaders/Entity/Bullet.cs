@@ -11,13 +11,12 @@ namespace SpaceInvaders
 {
   internal class Bullet : IEntity
   {
-    private readonly float speed = 1.0f;
-    private RectangleF rectangle;
     public IEntity Parent;
+    private RectangleF rectangle;
+    private readonly float speed = 1.0f;
     public Color Color { get; }
-
     public bool Disposing { get; private set; }
-    public RectangleF Rectangle { get => rectangle; private set { } }
+    public ref RectangleF Rectangle { get => ref rectangle; }
 
     public Bullet(IEntity parent)
     {

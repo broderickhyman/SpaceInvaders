@@ -14,10 +14,10 @@ namespace SpaceInvaders
   {
     private RectangleF rectangle;
 
-    public float Speed { get; }
-    public RectangleF Rectangle { get => rectangle; private set { } }
-
     public Color Color { get; } = Color.Green;
+    public bool Disposing { get; }
+    public float Speed { get; }
+    public ref RectangleF Rectangle { get => ref rectangle; }
 
     public Player(float speed)
     {
