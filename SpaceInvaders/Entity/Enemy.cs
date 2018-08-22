@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
@@ -9,23 +10,25 @@ using System.Threading.Tasks;
 
 namespace SpaceInvaders
 {
-  internal class Player : IEntity
+  internal class Enemy : IEntity
   {
     private RectangleF rectangle;
 
     public float Speed { get; set; }
+    public RectangleF Rectangle { get => rectangle; private set { } }
+    public Color Color { get; } = Color.White;
 
-    public Player(RectangleF rect)
+    public Enemy(RectangleF rectangle)
     {
-      rectangle = rect;
+      this.rectangle = rectangle;
     }
 
-    public void Initialize()
+    public static void Initialize()
     {
 
     }
 
-    public void Update()
+    public void Update(GameTime gameTime)
     {
 
     }
@@ -33,7 +36,7 @@ namespace SpaceInvaders
     public void Draw(SpriteBatch spriteBatch)
     {
       spriteBatch.Begin();
-      spriteBatch.FillRectangle(rectangle, Color.Green);
+      spriteBatch.FillRectangle(rectangle, Color);
       spriteBatch.End();
     }
   }

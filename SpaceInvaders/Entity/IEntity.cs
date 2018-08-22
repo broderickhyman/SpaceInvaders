@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
@@ -10,11 +11,10 @@ namespace SpaceInvaders
 {
   internal interface IEntity
   {
-    float Speed { get; set; }
+    RectangleF Rectangle { get; }
+    Color Color { get; }
 
-    void Initialize();
-
-    void Update();
+    void Update(GameTime gameTime);
 
     void Draw(SpriteBatch spriteBatch);
   }

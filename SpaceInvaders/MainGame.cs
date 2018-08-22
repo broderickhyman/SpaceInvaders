@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SpaceInvaders
 {
@@ -12,24 +14,23 @@ namespace SpaceInvaders
   {
     private readonly GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
-    private Player player;
-    const float windowWidth = 800;
-    const float windowHeight = 800;
+    private readonly Player player;
+    private readonly List<Bullet> bullets = new List<Bullet>();
+    private readonly List<Bullet> removableBullets = new List<Bullet>();
+    public static float WindowWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2;
+    public static float WindowHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2;
+    private Bullet playerBullet;
 
     public MainGame()
     {
       graphics = new GraphicsDeviceManager(this)
       {
-        PreferredBackBufferWidth = (int)windowWidth,
-        PreferredBackBufferHeight = (int)windowHeight
+        PreferredBackBufferWidth = (int)WindowWidth,
+        PreferredBackBufferHeight = (int)WindowHeight
       };
+      Window.Position = new Point((GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2) - (graphics.PreferredBackBufferWidth / 2), (GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2) - (graphics.PreferredBackBufferHeight / 2));
       Content.RootDirectory = "Content";
-      const float playerWidth = windowWidth / 10;
-      const float playerHeight = windowHeight / 20;
-      player = new Player(new RectangleF((windowWidth / 2) - (playerWidth / 2), windowHeight - (playerHeight / 2) - (windowHeight / 10), windowWidth / 10, windowHeight / 20))
-      {
-        Speed = 10
-      };
+      player = new Player(1.5f);
     }
 
     /// <summary>
@@ -40,7 +41,11 @@ namespace SpaceInvaders
     /// </summary>
     protected override void Initialize()
     {
-      player.Initialize();
+      Player.Initialize();
+      Bullet.Initialize();
+      Enemy.Initialize();
+      playerBullet = new Bullet(player);
+      bullets.Add(playerBullet);
       base.Initialize();
     }
 
@@ -70,9 +75,29 @@ namespace SpaceInvaders
     protected override void Update(GameTime gameTime)
     {
       if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+      {
         Exit();
+      }
+      if (playerBullet == default(Bullet) && Keyboard.GetState().IsKeyDown(Keys.Space))
+      {
+        playerBullet = new Bullet(player);
+        bullets.Add(playerBullet);
+      }
 
-      player.Update();
+      player.Update(gameTime);
+      foreach (var bullet in bullets)
+      {
+        bullet.Update(gameTime);
+        if (bullet.Disposing) { removableBullets.Add(bullet); }
+      }
+
+      foreach (var bullet in removableBullets)
+      {
+        bullets.Remove(bullet);
+      }
+      removableBullets.Clear();
+
+      if (playerBullet?.Disposing == true) { playerBullet = default(Bullet); }
 
       base.Update(gameTime);
     }
@@ -85,10 +110,11 @@ namespace SpaceInvaders
     {
       GraphicsDevice.Clear(Color.Black);
 
+      foreach (var bullet in bullets) { bullet.Draw(spriteBatch); }
       player.Draw(spriteBatch);
-      spriteBatch.Begin();
-      spriteBatch.DrawLine(windowWidth / 2, 0, windowWidth / 2, windowHeight, Color.Red);
-      spriteBatch.End();
+      //spriteBatch.Begin();
+      //spriteBatch.DrawLine(WindowWidth / 2, 0, WindowWidth / 2, WindowHeight, Color.Red);
+      //spriteBatch.End();
 
       base.Draw(gameTime);
     }
