@@ -23,6 +23,9 @@ namespace SpaceInvaders
     private TimeSpan previousUpdate = TimeSpan.Zero;
     private TimeSpan previousRemoval = TimeSpan.Zero;
 
+    public IEnumerable<Enemy> Enemies { get { return columns.SelectMany(x => x); } }
+    private List<Enemy> removableEnemies = new List<Enemy>();
+
     public EnemyGrid(int cols, int rows)
     {
       const float sideGapPercentage = 0.1f;
@@ -55,7 +58,7 @@ namespace SpaceInvaders
 
     public void Update(GameTime gameTime)
     {
-      //double enemyCount = columns.SelectMany(x => x).Count() + 1;
+      //double enemyCount = Enemies.Count() + 1;
       //if (gameTime.TotalGameTime - previousRemoval > TimeSpan.FromSeconds((1 - (enemyCount / 50)) * 2))
       //{
       //  previousRemoval = gameTime.TotalGameTime;
@@ -93,6 +96,27 @@ namespace SpaceInvaders
       }
     }
 
+    public void CheckCollision(Bullet bullet)
+    {
+      if (!(bullet.Parent is Enemy))
+      {
+        foreach (var enemy in Enemies)
+        {
+          enemy.CheckCollision(bullet);
+          if (enemy.Disposing)
+          {
+            removableEnemies.Add(enemy);
+          }
+        }
+        foreach (var enemy in removableEnemies)
+        {
+          RemoveEnemy(enemy);
+        }
+        if (removableEnemies.Count > 0) { UpdateBottomEnemies(); }
+        removableEnemies.Clear();
+      }
+    }
+
     public Bullet GetBullet()
     {
       if (bottomEnemies.Count > 0)
@@ -101,6 +125,19 @@ namespace SpaceInvaders
         return new Bullet(enemy);
       }
       return null;
+    }
+
+    private void RemoveEnemy(Enemy enemy)
+    {
+      foreach (var column in columns)
+      {
+        column.Remove(enemy);
+        if (column.Count == 0)
+        {
+          columns.Remove(column);
+          break;
+        }
+      }
     }
 
     private void RemoveRandomEnemy()
@@ -122,7 +159,7 @@ namespace SpaceInvaders
 
     private void OffsetEnemies(float x, float y)
     {
-      foreach (var enemy in columns.SelectMany(z => z))
+      foreach (var enemy in Enemies)
       {
         enemy.Rectangle.Offset(x, y);
       }
@@ -130,7 +167,7 @@ namespace SpaceInvaders
 
     public void Draw(SpriteBatch spriteBatch)
     {
-      foreach (var enemy in columns.SelectMany(z => z))
+      foreach (var enemy in Enemies)
       {
         enemy.Draw(spriteBatch);
       }

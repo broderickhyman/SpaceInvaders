@@ -15,7 +15,7 @@ namespace SpaceInvaders
     private RectangleF rectangle;
 
     public Color Color { get; } = Color.Green;
-    public bool Disposing { get; }
+    public bool Disposing { get; set; }
     public float Speed { get; }
     public ref RectangleF Rectangle { get => ref rectangle; }
 
@@ -36,6 +36,7 @@ namespace SpaceInvaders
 
     public void Update(GameTime gameTime)
     {
+      if (Disposing) { return; }
       if (Keyboard.GetState().IsKeyDown(Keys.Left))
       {
         rectangle.Offset(-Speed * gameTime.ElapsedGameTime.Milliseconds, 0);
@@ -54,8 +55,18 @@ namespace SpaceInvaders
       }
     }
 
+    public void CheckCollision(Bullet bullet)
+    {
+      if (!(bullet.Parent is Player) && rectangle.Intersects(bullet.Rectangle))
+      {
+        Disposing = true;
+        bullet.Disposing = true;
+      }
+    }
+
     public void Draw(SpriteBatch spriteBatch)
     {
+      if (Disposing) { return; }
       spriteBatch.Begin();
       spriteBatch.FillRectangle(rectangle, Color);
       spriteBatch.End();

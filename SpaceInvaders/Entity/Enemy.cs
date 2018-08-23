@@ -38,6 +38,15 @@ namespace SpaceInvaders
 
     }
 
+    public void CheckCollision(Bullet bullet)
+    {
+      if (!(bullet.Parent is Enemy) && rectangle.Intersects(bullet.Rectangle))
+      {
+        Disposing = true;
+        bullet.Disposing = true;
+      }
+    }
+
     public void Draw(SpriteBatch spriteBatch)
     {
       var color = Color;

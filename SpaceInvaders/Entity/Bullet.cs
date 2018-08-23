@@ -15,7 +15,7 @@ namespace SpaceInvaders
     private RectangleF rectangle;
     private readonly float speed = 1.0f;
     public Color Color { get; }
-    public bool Disposing { get; private set; }
+    public bool Disposing { get; set; }
     public ref RectangleF Rectangle { get => ref rectangle; }
 
     public Bullet(IEntity parent)
@@ -45,6 +45,11 @@ namespace SpaceInvaders
       {
         Disposing = true;
       }
+    }
+
+    public void CheckCollision(Bullet bullet)
+    {
+
     }
 
     public void Draw(SpriteBatch spriteBatch)

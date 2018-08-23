@@ -94,8 +94,6 @@ namespace SpaceInvaders
         bullets.Add(playerBullet);
       }
 
-      enemyGrid.Update(gameTime);
-
       if (enemyBullet == default(Bullet))
       {
         enemyBullet = enemyGrid.GetBullet();
@@ -105,13 +103,21 @@ namespace SpaceInvaders
         }
       }
 
+      enemyGrid.Update(gameTime);
+
       player.Update(gameTime);
       foreach (var bullet in bullets)
       {
         bullet.Update(gameTime);
+      }
+      base.Update(gameTime);
+
+      foreach (var bullet in bullets)
+      {
+        player.CheckCollision(bullet);
+        enemyGrid.CheckCollision(bullet);
         if (bullet.Disposing) { removableBullets.Add(bullet); }
       }
-
       foreach (var bullet in removableBullets)
       {
         bullets.Remove(bullet);
@@ -122,10 +128,7 @@ namespace SpaceInvaders
 
       if (enemyBullet?.Disposing == true) { enemyBullet = default(Bullet); }
 
-      base.Update(gameTime);
-
       elapsedTime += gameTime.ElapsedGameTime;
-
       if (elapsedTime > TimeSpan.FromSeconds(1))
       {
         elapsedTime -= TimeSpan.FromSeconds(1);
