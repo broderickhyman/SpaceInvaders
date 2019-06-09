@@ -21,11 +21,17 @@ namespace SpaceInvaders
 
     public Player(float speed)
     {
+      Reset();
+      Speed = speed;
+    }
+
+    public void Reset()
+    {
+      Disposing = false;
       var width = MainGame.WindowWidth / 15;
       var height = MainGame.WindowHeight / 20;
       var x = (MainGame.WindowWidth / 2) - (width / 2);
       var y = MainGame.WindowHeight - (height / 2) - (MainGame.WindowHeight / 20);
-      Speed = speed;
       rectangle = new RectangleF(x, y, width, height);
     }
 
@@ -55,7 +61,7 @@ namespace SpaceInvaders
       }
     }
 
-    public void CheckCollision(Bullet bullet)
+    public void CheckCollision(Bullet bullet, MainGame game)
     {
       if (!(bullet.Parent is Player) && rectangle.Intersects(bullet.Rectangle))
       {

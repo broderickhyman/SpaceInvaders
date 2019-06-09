@@ -28,6 +28,7 @@ namespace SpaceInvaders
     private int frameRate;
     private int frameCounter;
     private TimeSpan elapsedTime = TimeSpan.Zero;
+    private int score = 0;
 
     public MainGame()
     {
@@ -40,6 +41,16 @@ namespace SpaceInvaders
       Content.RootDirectory = "Content";
       player = new Player(1.5f);
       enemyGrid = new EnemyGrid(10, 5);
+    }
+
+    private void Reset()
+    {
+      score = 0;
+      playerBullet = default;
+      enemyBullet = default;
+      bullets.Clear();
+      player.Reset();
+      enemyGrid.Reset();
     }
 
     /// <summary>
@@ -88,7 +99,7 @@ namespace SpaceInvaders
       {
         Exit();
       }
-      if (playerBullet == default(Bullet) && Keyboard.GetState().IsKeyDown(Keys.Space))
+      if (!player.Disposing && playerBullet == default(Bullet) && Keyboard.GetState().IsKeyDown(Keys.Space))
       {
         playerBullet = new Bullet(player);
         bullets.Add(playerBullet);
@@ -114,8 +125,8 @@ namespace SpaceInvaders
 
       foreach (var bullet in bullets)
       {
-        player.CheckCollision(bullet);
-        enemyGrid.CheckCollision(bullet);
+        player.CheckCollision(bullet, this);
+        enemyGrid.CheckCollision(bullet, this);
         if (bullet.Disposing) { removableBullets.Add(bullet); }
       }
       foreach (var bullet in removableBullets)
@@ -124,9 +135,9 @@ namespace SpaceInvaders
       }
       removableBullets.Clear();
 
-      if (playerBullet?.Disposing == true) { playerBullet = default(Bullet); }
+      if (playerBullet?.Disposing == true) { playerBullet = default; }
 
-      if (enemyBullet?.Disposing == true) { enemyBullet = default(Bullet); }
+      if (enemyBullet?.Disposing == true) { enemyBullet = default; }
 
       elapsedTime += gameTime.ElapsedGameTime;
       if (elapsedTime > TimeSpan.FromSeconds(1))
@@ -134,6 +145,10 @@ namespace SpaceInvaders
         elapsedTime -= TimeSpan.FromSeconds(1);
         frameRate = frameCounter;
         frameCounter = 0;
+      }
+      if (player.Disposing)
+      {
+        Reset();
       }
     }
 
@@ -151,13 +166,17 @@ namespace SpaceInvaders
 
       enemyGrid.Draw(spriteBatch);
 
-      string fps = string.Format("FPS: {0}", frameRate);
-
       spriteBatch.Begin();
-      spriteBatch.DrawString(spriteFont, fps, new Vector2(0, 0), Color.Green);
+      spriteBatch.DrawString(spriteFont, $"FPS: {frameRate}", new Vector2(0, 0), Color.Green);
+      spriteBatch.DrawString(spriteFont, $"Score: {score,4}", new Vector2(WindowWidth - 300, 0), Color.Green);
       spriteBatch.End();
 
       base.Draw(gameTime);
+    }
+
+    public void EnemyKilled()
+    {
+      score += 100;
     }
   }
 }

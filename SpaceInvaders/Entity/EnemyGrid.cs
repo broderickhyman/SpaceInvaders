@@ -22,12 +22,24 @@ namespace SpaceInvaders
     private const float shiftSeconds = 0.5f;
     private TimeSpan previousUpdate = TimeSpan.Zero;
     private TimeSpan previousRemoval = TimeSpan.Zero;
+    private int cols;
+    private int rows;
 
     public IEnumerable<Enemy> Enemies { get { return columns.SelectMany(x => x); } }
     private List<Enemy> removableEnemies = new List<Enemy>();
 
     public EnemyGrid(int cols, int rows)
     {
+      this.cols = cols;
+      this.rows = rows;
+      Reset();
+    }
+
+    internal void Reset()
+    {
+      Disposing = false;
+      columns.Clear();
+      bottomEnemies.Clear();
       const float sideGapPercentage = 0.1f;
       var boundingWidth = MainGame.WindowWidth * (1 - (sideGapPercentage * 2));
       var xGap = (boundingWidth - (Enemy.Width * cols)) / cols;
@@ -96,16 +108,17 @@ namespace SpaceInvaders
       }
     }
 
-    public void CheckCollision(Bullet bullet)
+    public void CheckCollision(Bullet bullet, MainGame game)
     {
       if (!(bullet.Parent is Enemy))
       {
         foreach (var enemy in Enemies)
         {
-          enemy.CheckCollision(bullet);
+          enemy.CheckCollision(bullet, game);
           if (enemy.Disposing)
           {
             removableEnemies.Add(enemy);
+            game.EnemyKilled();
           }
         }
         foreach (var enemy in removableEnemies)

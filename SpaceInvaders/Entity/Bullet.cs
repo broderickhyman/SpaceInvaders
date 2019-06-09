@@ -13,7 +13,7 @@ namespace SpaceInvaders
   {
     public IEntity Parent;
     private RectangleF rectangle;
-    private readonly float speed = 1.0f;
+    private readonly float speed = 0.75f;
     public Color Color { get; }
     public bool Disposing { get; set; }
     public ref RectangleF Rectangle { get => ref rectangle; }
@@ -47,7 +47,7 @@ namespace SpaceInvaders
       }
     }
 
-    public void CheckCollision(Bullet bullet)
+    public void CheckCollision(Bullet bullet, MainGame game)
     {
 
     }

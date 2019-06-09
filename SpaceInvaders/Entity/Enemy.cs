@@ -38,7 +38,7 @@ namespace SpaceInvaders
 
     }
 
-    public void CheckCollision(Bullet bullet)
+    public void CheckCollision(Bullet bullet, MainGame game)
     {
       if (!(bullet.Parent is Enemy) && rectangle.Intersects(bullet.Rectangle))
       {

@@ -15,6 +15,6 @@ namespace SpaceInvaders
     void Update(GameTime gameTime);
     void Draw(SpriteBatch spriteBatch);
 
-    void CheckCollision(Bullet bullet);
+    void CheckCollision(Bullet bullet, MainGame game);
   }
 }
