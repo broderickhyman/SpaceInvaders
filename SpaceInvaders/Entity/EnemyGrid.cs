@@ -19,7 +19,7 @@ namespace SpaceInvaders
 
     private Direction direction = Direction.Right;
     private const float shiftAmount = 20f;
-    private const float shiftSeconds = 0.5f;
+    private const float shiftSeconds = 0.75f;
     private TimeSpan previousUpdate = TimeSpan.Zero;
     private TimeSpan previousRemoval = TimeSpan.Zero;
     private int cols;

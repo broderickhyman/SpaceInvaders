@@ -13,7 +13,7 @@ namespace SpaceInvaders
   {
     public IEntity Parent;
     private RectangleF rectangle;
-    private readonly float speed = 0.75f;
+    private readonly float speed = 0.6f;
     public Color Color { get; }
     public bool Disposing { get; set; }
     public ref RectangleF Rectangle { get => ref rectangle; }
