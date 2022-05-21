@@ -2,7 +2,6 @@
 
 namespace SpaceInvaders
 {
-#if WINDOWS || LINUX
   /// <summary>
   /// The main class.
   /// </summary>
@@ -14,11 +13,8 @@ namespace SpaceInvaders
     [STAThread]
     private static void Main()
     {
-      using (var game = new MainGame())
-      {
-        game.Run();
-      }
+      using var game = new MainGame();
+      game.Run();
     }
   }
-#endif
 }
