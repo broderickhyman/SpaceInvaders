@@ -9,5 +9,5 @@ internal interface IEntityGroup
   void Update(GameTime gameTime);
   void Draw(SpriteBatch spriteBatch);
 
-  void CheckCollision(Bullet bullet, MainGame game);
+  void CheckCollision(Bullet bullet);
 }

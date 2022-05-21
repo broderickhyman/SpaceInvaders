@@ -21,17 +21,20 @@ internal class EnemyGrid : IEntityGroup
   private readonly GameConfiguration _gameConfig;
   private readonly EnemyConfiguration _enemyConfig;
   private readonly List<Enemy> _removableEnemies = new();
+  private readonly Score _score;
 
   public IEnumerable<Enemy> Enemies { get { return _columns.SelectMany(x => x); } }
 
   public EnemyGrid(int cols, int rows,
     GameConfiguration gameConfig,
-    EnemyConfiguration enemyConfig)
+    EnemyConfiguration enemyConfig,
+    Score score)
   {
     _cols = cols;
     _rows = rows;
     _gameConfig = gameConfig;
     _enemyConfig = enemyConfig;
+    _score = score;
     Reset();
   }
 
@@ -109,17 +112,17 @@ internal class EnemyGrid : IEntityGroup
     }
   }
 
-  public void CheckCollision(Bullet bullet, MainGame game)
+  public void CheckCollision(Bullet bullet)
   {
     if (bullet.Parent is not Enemy)
     {
       foreach (var enemy in Enemies)
       {
-        enemy.CheckCollision(bullet, game);
+        enemy.CheckCollision(bullet);
         if (enemy.Disposing)
         {
           _removableEnemies.Add(enemy);
-          game.EnemyKilled();
+          _score.EnemyKilled();
         }
       }
       foreach (var enemy in _removableEnemies)

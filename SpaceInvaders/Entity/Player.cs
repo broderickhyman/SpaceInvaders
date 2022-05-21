@@ -56,7 +56,7 @@ internal class Player : IEntity
     }
   }
 
-  public void CheckCollision(Bullet bullet, MainGame game)
+  public void CheckCollision(Bullet bullet)
   {
     if (bullet.Parent is not Player && _rectangle.Intersects(bullet.Rectangle))
     {

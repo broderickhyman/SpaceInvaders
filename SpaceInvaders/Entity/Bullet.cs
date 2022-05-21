@@ -43,7 +43,7 @@ internal class Bullet : IEntity
     }
   }
 
-  public void CheckCollision(Bullet bullet, MainGame game)
+  public void CheckCollision(Bullet bullet)
   {
   }
 

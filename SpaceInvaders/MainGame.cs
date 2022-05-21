@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended.Input.InputListeners;
 using SpaceInvaders.Entity;
 using SpaceInvaders.Game;
 
@@ -8,23 +9,18 @@ namespace SpaceInvaders;
 /// <summary>
 /// This is the main type for your game.
 /// </summary>
-public class MainGame : Microsoft.Xna.Framework.Game
+internal class MainGame : Microsoft.Xna.Framework.Game
 {
   private SpriteBatch _spriteBatch;
   private SpriteFont _spriteFont;
   private readonly GraphicsDeviceManager _graphics;
-  private readonly EnemyGrid _enemyGrid;
-  private readonly Player _player;
-  private readonly List<Bullet> _bullets = new();
-  private readonly List<Bullet> _removableBullets = new();
-  private Bullet _playerBullet;
-  private Bullet _enemyBullet;
   private int _frameRate;
   private int _frameCounter;
   private TimeSpan _elapsedTime = TimeSpan.Zero;
-  private int _score;
   private readonly GameConfiguration _gameConfiguration;
   private readonly EnemyConfiguration _enemyConfiguration;
+  private State _state;
+  private readonly KeyboardListener _keyboardListener;
 
   public MainGame()
   {
@@ -39,18 +35,8 @@ public class MainGame : Microsoft.Xna.Framework.Game
     };
     Window.Position = new Point((GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2) - (_graphics.PreferredBackBufferWidth / 2), (GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2) - (_graphics.PreferredBackBufferHeight / 2));
     Content.RootDirectory = "Content";
-    _player = new Player(1.5f, _gameConfiguration);
-    _enemyGrid = new EnemyGrid(10, 5, _gameConfiguration, _enemyConfiguration);
-  }
-
-  private void Reset()
-  {
-    _score = 0;
-    _playerBullet = default;
-    _enemyBullet = default;
-    _bullets.Clear();
-    _player.Reset();
-    _enemyGrid.Reset();
+    _keyboardListener = new KeyboardListener();
+    _keyboardListener.KeyReleased += KeyReleased;
   }
 
   /// <summary>
@@ -67,6 +53,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
     //playerBullet = new Bullet(player);
     //bullets.Add(playerBullet);
     base.Initialize();
+    MoveToPlaying();
   }
 
   /// <summary>
@@ -87,6 +74,21 @@ public class MainGame : Microsoft.Xna.Framework.Game
   {
   }
 
+  public void MoveToPlaying()
+  {
+    _state = new PlayingState(_gameConfiguration, _enemyConfiguration, _spriteBatch, _spriteFont, this);
+  }
+
+  public void MoveToPlaying(PausedState pausedState)
+  {
+    _state = pausedState.PlayingState;
+  }
+
+  public void MoveToPaused(PlayingState playingState)
+  {
+    _state = new PausedState(_gameConfiguration, _spriteBatch, _spriteFont, playingState);
+  }
+
   /// <summary>
   /// Allows the game to run logic such as updating the world,
   /// checking for collisions, gathering input, and playing audio.
@@ -94,49 +96,10 @@ public class MainGame : Microsoft.Xna.Framework.Game
   /// <param name="gameTime">Provides a snapshot of timing values.</param>
   protected override void Update(GameTime gameTime)
   {
-    if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-    {
-      Exit();
-    }
-    if (!_player.Disposing && _playerBullet == default(Bullet) && Keyboard.GetState().IsKeyDown(Keys.Space))
-    {
-      _playerBullet = new Bullet(_player, _gameConfiguration);
-      _bullets.Add(_playerBullet);
-    }
+    _keyboardListener.Update(gameTime);
 
-    if (_enemyBullet == default(Bullet))
-    {
-      _enemyBullet = _enemyGrid.GetBullet();
-      if (_enemyBullet != null)
-      {
-        _bullets.Add(_enemyBullet);
-      }
-    }
-
-    _enemyGrid.Update(gameTime);
-
-    _player.Update(gameTime);
-    foreach (var bullet in _bullets)
-    {
-      bullet.Update(gameTime);
-    }
+    _state.Update(gameTime);
     base.Update(gameTime);
-
-    foreach (var bullet in _bullets)
-    {
-      _player.CheckCollision(bullet, this);
-      _enemyGrid.CheckCollision(bullet, this);
-      if (bullet.Disposing) { _removableBullets.Add(bullet); }
-    }
-    foreach (var bullet in _removableBullets)
-    {
-      _bullets.Remove(bullet);
-    }
-    _removableBullets.Clear();
-
-    if (_playerBullet?.Disposing == true) { _playerBullet = default; }
-
-    if (_enemyBullet?.Disposing == true) { _enemyBullet = default; }
 
     _elapsedTime += gameTime.ElapsedGameTime;
     if (_elapsedTime > TimeSpan.FromSeconds(1))
@@ -144,10 +107,6 @@ public class MainGame : Microsoft.Xna.Framework.Game
       _elapsedTime -= TimeSpan.FromSeconds(1);
       _frameRate = _frameCounter;
       _frameCounter = 0;
-    }
-    if (_player.Disposing)
-    {
-      Reset();
     }
   }
 
@@ -160,21 +119,33 @@ public class MainGame : Microsoft.Xna.Framework.Game
     _frameCounter++;
     GraphicsDevice.Clear(Color.Black);
 
-    foreach (var bullet in _bullets) { bullet.Draw(_spriteBatch); }
-    _player.Draw(_spriteBatch);
-
-    _enemyGrid.Draw(_spriteBatch);
+    _state.Draw(gameTime);
 
     _spriteBatch.Begin();
     _spriteBatch.DrawString(_spriteFont, $"FPS: {_frameRate}", new Vector2(0, 0), Color.Green);
-    _spriteBatch.DrawString(_spriteFont, $"Score: {_score,4}", new Vector2(_gameConfiguration.WindowWidth - 300, 0), Color.Green);
     _spriteBatch.End();
 
     base.Draw(gameTime);
   }
 
-  public void EnemyKilled()
+  private void KeyReleased(object sender, KeyboardEventArgs e)
   {
-    _score += 100;
+    _state.KeyReleased(sender, e);
+    switch (e.Key)
+    {
+      case Keys.Escape:
+        Exit();
+        break;
+      case Keys.P:
+        if (_state is PlayingState playingState)
+        {
+          MoveToPaused(playingState);
+        }
+        else if (_state is PausedState pausedState)
+        {
+          MoveToPlaying(pausedState);
+        }
+        break;
+    }
   }
 }

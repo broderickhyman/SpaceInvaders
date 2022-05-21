@@ -31,7 +31,7 @@ internal class Enemy : IEntity
   {
   }
 
-  public void CheckCollision(Bullet bullet, MainGame game)
+  public void CheckCollision(Bullet bullet)
   {
     if (bullet.Parent is not Enemy && _rectangle.Intersects(bullet.Rectangle))
     {
