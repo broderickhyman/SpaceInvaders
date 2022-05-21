@@ -1,52 +1,56 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SpaceInvaders.Entity;
+using SpaceInvaders.Game;
 
 namespace SpaceInvaders;
 
 /// <summary>
 /// This is the main type for your game.
 /// </summary>
-public class MainGame : Game
+public class MainGame : Microsoft.Xna.Framework.Game
 {
-  private SpriteBatch spriteBatch;
-  private SpriteFont spriteFont;
-  private readonly GraphicsDeviceManager graphics;
-  private readonly EnemyGrid enemyGrid;
-  private readonly Player player;
-  private readonly List<Bullet> bullets = new();
-  private readonly List<Bullet> removableBullets = new();
-  public static float WindowWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 3f;
-  public static float WindowHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 1.25f;
-  private Bullet playerBullet;
-  private Bullet enemyBullet;
-  public static Random Random = new();
-  private int frameRate;
-  private int frameCounter;
-  private TimeSpan elapsedTime = TimeSpan.Zero;
-  private int score = 0;
+  private SpriteBatch _spriteBatch;
+  private SpriteFont _spriteFont;
+  private readonly GraphicsDeviceManager _graphics;
+  private readonly EnemyGrid _enemyGrid;
+  private readonly Player _player;
+  private readonly List<Bullet> _bullets = new();
+  private readonly List<Bullet> _removableBullets = new();
+  private Bullet _playerBullet;
+  private Bullet _enemyBullet;
+  private int _frameRate;
+  private int _frameCounter;
+  private TimeSpan _elapsedTime = TimeSpan.Zero;
+  private int _score;
+  private readonly GameConfiguration _gameConfiguration;
+  private readonly EnemyConfiguration _enemyConfiguration;
 
   public MainGame()
   {
-    graphics = new GraphicsDeviceManager(this)
+    _gameConfiguration = new(
+      GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 3f,
+      GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 1.25f);
+    _enemyConfiguration = new(_gameConfiguration);
+    _graphics = new GraphicsDeviceManager(this)
     {
-      PreferredBackBufferWidth = (int)WindowWidth,
-      PreferredBackBufferHeight = (int)WindowHeight
+      PreferredBackBufferWidth = (int)_gameConfiguration.WindowWidth,
+      PreferredBackBufferHeight = (int)_gameConfiguration.WindowHeight
     };
-    Window.Position = new Point((GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2) - (graphics.PreferredBackBufferWidth / 2), (GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2) - (graphics.PreferredBackBufferHeight / 2));
+    Window.Position = new Point((GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2) - (_graphics.PreferredBackBufferWidth / 2), (GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2) - (_graphics.PreferredBackBufferHeight / 2));
     Content.RootDirectory = "Content";
-    player = new Player(1.5f);
-    enemyGrid = new EnemyGrid(10, 5);
+    _player = new Player(1.5f, _gameConfiguration);
+    _enemyGrid = new EnemyGrid(10, 5, _gameConfiguration, _enemyConfiguration);
   }
 
   private void Reset()
   {
-    score = 0;
-    playerBullet = default;
-    enemyBullet = default;
-    bullets.Clear();
-    player.Reset();
-    enemyGrid.Reset();
+    _score = 0;
+    _playerBullet = default;
+    _enemyBullet = default;
+    _bullets.Clear();
+    _player.Reset();
+    _enemyGrid.Reset();
   }
 
   /// <summary>
@@ -71,8 +75,8 @@ public class MainGame : Game
   /// </summary>
   protected override void LoadContent()
   {
-    spriteBatch = new SpriteBatch(GraphicsDevice);
-    spriteFont = Content.Load<SpriteFont>("Main");
+    _spriteBatch = new SpriteBatch(GraphicsDevice);
+    _spriteFont = Content.Load<SpriteFont>("Main");
   }
 
   /// <summary>
@@ -81,7 +85,6 @@ public class MainGame : Game
   /// </summary>
   protected override void UnloadContent()
   {
-
   }
 
   /// <summary>
@@ -95,54 +98,54 @@ public class MainGame : Game
     {
       Exit();
     }
-    if (!player.Disposing && playerBullet == default(Bullet) && Keyboard.GetState().IsKeyDown(Keys.Space))
+    if (!_player.Disposing && _playerBullet == default(Bullet) && Keyboard.GetState().IsKeyDown(Keys.Space))
     {
-      playerBullet = new Bullet(player);
-      bullets.Add(playerBullet);
+      _playerBullet = new Bullet(_player, _gameConfiguration);
+      _bullets.Add(_playerBullet);
     }
 
-    if (enemyBullet == default(Bullet))
+    if (_enemyBullet == default(Bullet))
     {
-      enemyBullet = enemyGrid.GetBullet();
-      if (enemyBullet != null)
+      _enemyBullet = _enemyGrid.GetBullet();
+      if (_enemyBullet != null)
       {
-        bullets.Add(enemyBullet);
+        _bullets.Add(_enemyBullet);
       }
     }
 
-    enemyGrid.Update(gameTime);
+    _enemyGrid.Update(gameTime);
 
-    player.Update(gameTime);
-    foreach (var bullet in bullets)
+    _player.Update(gameTime);
+    foreach (var bullet in _bullets)
     {
       bullet.Update(gameTime);
     }
     base.Update(gameTime);
 
-    foreach (var bullet in bullets)
+    foreach (var bullet in _bullets)
     {
-      player.CheckCollision(bullet, this);
-      enemyGrid.CheckCollision(bullet, this);
-      if (bullet.Disposing) { removableBullets.Add(bullet); }
+      _player.CheckCollision(bullet, this);
+      _enemyGrid.CheckCollision(bullet, this);
+      if (bullet.Disposing) { _removableBullets.Add(bullet); }
     }
-    foreach (var bullet in removableBullets)
+    foreach (var bullet in _removableBullets)
     {
-      bullets.Remove(bullet);
+      _bullets.Remove(bullet);
     }
-    removableBullets.Clear();
+    _removableBullets.Clear();
 
-    if (playerBullet?.Disposing == true) { playerBullet = default; }
+    if (_playerBullet?.Disposing == true) { _playerBullet = default; }
 
-    if (enemyBullet?.Disposing == true) { enemyBullet = default; }
+    if (_enemyBullet?.Disposing == true) { _enemyBullet = default; }
 
-    elapsedTime += gameTime.ElapsedGameTime;
-    if (elapsedTime > TimeSpan.FromSeconds(1))
+    _elapsedTime += gameTime.ElapsedGameTime;
+    if (_elapsedTime > TimeSpan.FromSeconds(1))
     {
-      elapsedTime -= TimeSpan.FromSeconds(1);
-      frameRate = frameCounter;
-      frameCounter = 0;
+      _elapsedTime -= TimeSpan.FromSeconds(1);
+      _frameRate = _frameCounter;
+      _frameCounter = 0;
     }
-    if (player.Disposing)
+    if (_player.Disposing)
     {
       Reset();
     }
@@ -154,24 +157,24 @@ public class MainGame : Game
   /// <param name="gameTime">Provides a snapshot of timing values.</param>
   protected override void Draw(GameTime gameTime)
   {
-    frameCounter++;
+    _frameCounter++;
     GraphicsDevice.Clear(Color.Black);
 
-    foreach (var bullet in bullets) { bullet.Draw(spriteBatch); }
-    player.Draw(spriteBatch);
+    foreach (var bullet in _bullets) { bullet.Draw(_spriteBatch); }
+    _player.Draw(_spriteBatch);
 
-    enemyGrid.Draw(spriteBatch);
+    _enemyGrid.Draw(_spriteBatch);
 
-    spriteBatch.Begin();
-    spriteBatch.DrawString(spriteFont, $"FPS: {frameRate}", new Vector2(0, 0), Color.Green);
-    spriteBatch.DrawString(spriteFont, $"Score: {score,4}", new Vector2(WindowWidth - 300, 0), Color.Green);
-    spriteBatch.End();
+    _spriteBatch.Begin();
+    _spriteBatch.DrawString(_spriteFont, $"FPS: {_frameRate}", new Vector2(0, 0), Color.Green);
+    _spriteBatch.DrawString(_spriteFont, $"Score: {_score,4}", new Vector2(_gameConfiguration.WindowWidth - 300, 0), Color.Green);
+    _spriteBatch.End();
 
     base.Draw(gameTime);
   }
 
   public void EnemyKilled()
   {
-    score += 100;
+    _score += 100;
   }
 }

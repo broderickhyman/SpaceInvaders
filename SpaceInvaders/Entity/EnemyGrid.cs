@@ -1,55 +1,64 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using SpaceInvaders.Game;
 
 namespace SpaceInvaders.Entity;
 
 internal class EnemyGrid : IEntityGroup
 {
-  private readonly List<List<Enemy>> columns = new List<List<Enemy>>();
-  private readonly List<Enemy> bottomEnemies = new List<Enemy>();
-  private RectangleF boundingRectangle;
+  private readonly List<List<Enemy>> _columns = new();
+  private readonly List<Enemy> _bottomEnemies = new();
+  private RectangleF _boundingRectangle;
   public Color Color { get; } = Color.White;
   public bool Disposing { get; private set; }
 
-  private Direction direction = Direction.Right;
-  private const float shiftAmount = 20f;
-  private const float shiftSeconds = 0.75f;
-  private TimeSpan previousUpdate = TimeSpan.Zero;
-  private readonly TimeSpan previousRemoval = TimeSpan.Zero;
-  private readonly int cols;
-  private readonly int rows;
+  private Direction _direction = Direction.Right;
+  private const float ShiftAmount = 20f;
+  private const float ShiftSeconds = 0.75f;
+  private TimeSpan _previousUpdate = TimeSpan.Zero;
+  //private readonly TimeSpan previousRemoval = TimeSpan.Zero;
+  private readonly int _cols;
+  private readonly int _rows;
+  private readonly GameConfiguration _gameConfig;
+  private readonly EnemyConfiguration _enemyConfig;
+  private readonly List<Enemy> _removableEnemies = new();
 
-  public IEnumerable<Enemy> Enemies { get { return columns.SelectMany(x => x); } }
-  private readonly List<Enemy> removableEnemies = new List<Enemy>();
+  public IEnumerable<Enemy> Enemies { get { return _columns.SelectMany(x => x); } }
 
-  public EnemyGrid(int cols, int rows)
+  public EnemyGrid(int cols, int rows,
+    GameConfiguration gameConfig,
+    EnemyConfiguration enemyConfig)
   {
-    this.cols = cols;
-    this.rows = rows;
+    _cols = cols;
+    _rows = rows;
+    _gameConfig = gameConfig;
+    _enemyConfig = enemyConfig;
     Reset();
   }
 
   internal void Reset()
   {
     Disposing = false;
-    columns.Clear();
-    bottomEnemies.Clear();
+    _columns.Clear();
+    _bottomEnemies.Clear();
     const float sideGapPercentage = 0.1f;
-    var boundingWidth = MainGame.WindowWidth * (1 - sideGapPercentage * 2);
-    var xGap = (boundingWidth - Enemy.Width * cols) / cols;
-    var boundingHeight = MainGame.WindowHeight * 0.5f;
-    var yGap = (boundingHeight - Enemy.Height * rows) / rows;
-    var topOffset = MainGame.WindowHeight * 0.1f;
-    for (var c = 0; c < cols; c++)
+    var boundingWidth = _gameConfig.WindowWidth * (1 - (sideGapPercentage * 2));
+    var xGap = (boundingWidth - (_enemyConfig.Width * _cols)) / _cols;
+    var boundingHeight = _gameConfig.WindowHeight * 0.5f;
+    var yGap = (boundingHeight - (_enemyConfig.Height * _rows)) / _rows;
+    var topOffset = _gameConfig.WindowHeight * 0.1f;
+    for (var c = 0; c < _cols; c++)
     {
       var column = new List<Enemy>();
-      columns.Add(column);
-      for (var r = 0; r < rows; r++)
+      _columns.Add(column);
+      for (var r = 0; r < _rows; r++)
       {
-        var enemy = new Enemy(sideGapPercentage * MainGame.WindowWidth + c * (Enemy.Width + xGap), topOffset + r * (Enemy.Height + yGap));
-        if (r == rows - 1)
+        var enemy = new Enemy(
+          (sideGapPercentage * _gameConfig.WindowWidth) + (c * (_enemyConfig.Width + xGap)), topOffset + (r * (_enemyConfig.Height + yGap)),
+          _gameConfig);
+        if (r == _rows - 1)
         {
           enemy.BottomEnemy = true;
-          bottomEnemies.Add(enemy);
+          _bottomEnemies.Add(enemy);
         }
         column.Add(enemy);
       }
@@ -58,7 +67,6 @@ internal class EnemyGrid : IEntityGroup
 
   public static void Initialize()
   {
-
   }
 
   public void Update(GameTime gameTime)
@@ -70,32 +78,32 @@ internal class EnemyGrid : IEntityGroup
     //  RemoveRandomEnemy();
     //}
 
-    if (gameTime.TotalGameTime - previousUpdate > TimeSpan.FromSeconds(shiftSeconds))
+    if (gameTime.TotalGameTime - _previousUpdate > TimeSpan.FromSeconds(ShiftSeconds))
     {
-      previousUpdate = gameTime.TotalGameTime;
+      _previousUpdate = gameTime.TotalGameTime;
       CalculateBoundingRectangle();
-      if (direction == Direction.Right)
+      if (_direction == Direction.Right)
       {
-        if (boundingRectangle.Right > MainGame.WindowWidth - shiftAmount)
+        if (_boundingRectangle.Right > _gameConfig.WindowWidth - ShiftAmount)
         {
-          direction = Direction.Left;
-          OffsetEnemies(0, shiftAmount);
+          _direction = Direction.Left;
+          OffsetEnemies(0, ShiftAmount);
         }
         else
         {
-          OffsetEnemies(shiftAmount, 0);
+          OffsetEnemies(ShiftAmount, 0);
         }
       }
-      else if (direction == Direction.Left)
+      else if (_direction == Direction.Left)
       {
-        if (boundingRectangle.Left < shiftAmount)
+        if (_boundingRectangle.Left < ShiftAmount)
         {
-          direction = Direction.Right;
-          OffsetEnemies(0, shiftAmount);
+          _direction = Direction.Right;
+          OffsetEnemies(0, ShiftAmount);
         }
         else
         {
-          OffsetEnemies(-shiftAmount, 0);
+          OffsetEnemies(-ShiftAmount, 0);
         }
       }
     }
@@ -103,65 +111,65 @@ internal class EnemyGrid : IEntityGroup
 
   public void CheckCollision(Bullet bullet, MainGame game)
   {
-    if (!(bullet.Parent is Enemy))
+    if (bullet.Parent is not Enemy)
     {
       foreach (var enemy in Enemies)
       {
         enemy.CheckCollision(bullet, game);
         if (enemy.Disposing)
         {
-          removableEnemies.Add(enemy);
+          _removableEnemies.Add(enemy);
           game.EnemyKilled();
         }
       }
-      foreach (var enemy in removableEnemies)
+      foreach (var enemy in _removableEnemies)
       {
         RemoveEnemy(enemy);
       }
-      if (removableEnemies.Count > 0) { UpdateBottomEnemies(); }
-      removableEnemies.Clear();
+      if (_removableEnemies.Count > 0) { UpdateBottomEnemies(); }
+      _removableEnemies.Clear();
     }
   }
 
   public Bullet GetBullet()
   {
-    if (bottomEnemies.Count > 0)
+    if (_bottomEnemies.Count > 0)
     {
-      var enemy = bottomEnemies[MainGame.Random.Next(0, bottomEnemies.Count)];
-      return new Bullet(enemy);
+      var enemy = _bottomEnemies[Random.Shared.Next(0, _bottomEnemies.Count)];
+      return new Bullet(enemy, _gameConfig);
     }
     return null;
   }
 
   private void RemoveEnemy(Enemy enemy)
   {
-    foreach (var column in columns)
+    foreach (var column in _columns)
     {
       column.Remove(enemy);
       if (column.Count == 0)
       {
-        columns.Remove(column);
+        _columns.Remove(column);
         break;
       }
     }
   }
 
-  private void RemoveRandomEnemy()
-  {
-    if (columns.Count > 0)
-    {
-      var col = MainGame.Random.Next(0, columns.Count);
-      var rowCount = columns[col].Count;
-      if (rowCount > 0)
-      {
-        var row = MainGame.Random.Next(0, columns[col].Count);
-        columns[col].RemoveAt(row);
-        if (rowCount == 1 && columns.Count > 0)
-          columns.RemoveAt(col);
-        UpdateBottomEnemies();
-      }
-    }
-  }
+  //private void RemoveRandomEnemy()
+  //{
+  //  if (columns.Count > 0)
+  //  {
+  //    var col = MainGame.Random.Next(0, columns.Count);
+  //    var rowCount = columns[col].Count;
+  //    if (rowCount > 0)
+  //    {
+  //      var row = MainGame.Random.Next(0, columns[col].Count);
+  //      columns[col].RemoveAt(row);
+  //      if (rowCount == 1 && columns.Count > 0)
+  //        columns.RemoveAt(col);
+  //      UpdateBottomEnemies();
+  //    }
+  //  }
+  //}
 
   private void OffsetEnemies(float x, float y)
   {
@@ -181,23 +189,23 @@ internal class EnemyGrid : IEntityGroup
 
   private void CalculateBoundingRectangle()
   {
-    var left = columns.FirstOrDefault()?.DefaultIfEmpty().Min(x => x.Rectangle.Left) ?? 0;
-    var right = columns.LastOrDefault()?.DefaultIfEmpty().Max(x => x.Rectangle.Right) ?? MainGame.WindowWidth;
-    var top = columns.Select(x => x.FirstOrDefault()).Min(x => x?.Rectangle.Top) ?? 0;
-    var bottom = columns.Select(x => x.LastOrDefault()).Max(x => x?.Rectangle.Bottom) ?? MainGame.WindowHeight;
-    boundingRectangle = new RectangleF(left, top, right - left, bottom - top);
+    var left = _columns.FirstOrDefault()?.DefaultIfEmpty().Min(x => x.Rectangle.Left) ?? 0;
+    var right = _columns.LastOrDefault()?.DefaultIfEmpty().Max(x => x.Rectangle.Right) ?? _gameConfig.WindowWidth;
+    var top = _columns.Select(x => x.FirstOrDefault()).Min(x => x?.Rectangle.Top) ?? 0;
+    var bottom = _columns.Select(x => x.LastOrDefault()).Max(x => x?.Rectangle.Bottom) ?? _gameConfig.WindowHeight;
+    _boundingRectangle = new RectangleF(left, top, right - left, bottom - top);
   }
 
   private void UpdateBottomEnemies()
   {
-    bottomEnemies.Clear();
-    foreach (var column in columns)
+    _bottomEnemies.Clear();
+    foreach (var column in _columns)
     {
       var last = column.Last();
       if (last != null)
       {
         last.BottomEnemy = true;
-        bottomEnemies.Add(last);
+        _bottomEnemies.Add(last);
       }
     }
   }

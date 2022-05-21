@@ -1,40 +1,43 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using SpaceInvaders.Game;
 
 namespace SpaceInvaders.Entity;
 
 internal class Bullet : IEntity
 {
   public IEntity Parent;
-  private RectangleF rectangle;
-  private readonly float speed = 0.6f;
+  private RectangleF _rectangle;
+  private readonly float _speed = 0.6f;
+  private readonly GameConfiguration _config;
+
   public Color Color { get; }
   public bool Disposing { get; set; }
-  public ref RectangleF Rectangle { get => ref rectangle; }
+  public ref RectangleF Rectangle { get => ref _rectangle; }
 
-  public Bullet(IEntity parent)
+  public Bullet(IEntity parent, GameConfiguration config)
   {
-    var width = MainGame.WindowWidth / 180;
-    var height = MainGame.WindowHeight / 40;
-    rectangle = new RectangleF(parent.Rectangle.Center.X - width / 2, parent.Rectangle.Center.Y - height / 2, width, height);
+    _config = config;
+    var width = config.WindowWidth / 180;
+    var height = config.WindowHeight / 40;
+    _rectangle = new RectangleF(parent.Rectangle.Center.X - (width / 2), parent.Rectangle.Center.Y - (height / 2), width, height);
     Parent = parent;
     Color = parent.Color;
     if (Parent is Player)
     {
-      speed *= -1;
+      _speed *= -1;
     }
   }
 
   public static void Initialize()
   {
-
   }
 
   public void Update(GameTime gameTime)
   {
-    var movement = gameTime.ElapsedGameTime.Milliseconds * speed;
+    var movement = gameTime.ElapsedGameTime.Milliseconds * _speed;
 
-    rectangle.Offset(0, movement);
-    if (rectangle.Bottom < 0 && Parent is Player || rectangle.Top > MainGame.WindowHeight && Parent is Enemy)
+    _rectangle.Offset(0, movement);
+    if ((_rectangle.Bottom < 0 && Parent is Player) || (_rectangle.Top > _config.WindowHeight && Parent is Enemy))
     {
       Disposing = true;
     }
@@ -42,13 +45,12 @@ internal class Bullet : IEntity
 
   public void CheckCollision(Bullet bullet, MainGame game)
   {
-
   }
 
   public void Draw(SpriteBatch spriteBatch)
   {
     spriteBatch.Begin();
-    spriteBatch.FillRectangle(rectangle, Color);
+    spriteBatch.FillRectangle(_rectangle, Color);
     spriteBatch.End();
   }
 }
