@@ -2,7 +2,9 @@
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Input.InputListeners;
 using SpaceInvaders.Entity;
+using SpaceInvaders.Entity.Enemies;
 using SpaceInvaders.Game;
+using SpaceInvaders.Graphics;
 
 namespace SpaceInvaders;
 
@@ -21,6 +23,7 @@ internal class MainGame : Microsoft.Xna.Framework.Game
   private readonly EnemyConfiguration _enemyConfiguration;
   private State _state;
   private readonly KeyboardListener _keyboardListener;
+  private readonly Dictionary<string, Animation> _animations = new();
 
   public MainGame()
   {
@@ -64,6 +67,15 @@ internal class MainGame : Microsoft.Xna.Framework.Game
   {
     _spriteBatch = new SpriteBatch(GraphicsDevice);
     _spriteFont = Content.Load<SpriteFont>("Main");
+    AddAnimation("Bottom Enemy");
+    AddAnimation("Middle Enemy");
+    AddAnimation("Top Enemy");
+    AddAnimation("Mystery Enemy");
+  }
+
+  private void AddAnimation(string name)
+  {
+    _animations[name] = new(Content, name);
   }
 
   /// <summary>
@@ -76,7 +88,7 @@ internal class MainGame : Microsoft.Xna.Framework.Game
 
   public void MoveToPlaying()
   {
-    _state = new PlayingState(_gameConfiguration, _enemyConfiguration, _spriteBatch, _spriteFont, this);
+    _state = new PlayingState(_gameConfiguration, _enemyConfiguration, _spriteBatch, _spriteFont, this, _animations);
   }
 
   public void MoveToPlaying(PausedState pausedState)
@@ -119,9 +131,10 @@ internal class MainGame : Microsoft.Xna.Framework.Game
     _frameCounter++;
     GraphicsDevice.Clear(Color.Black);
 
+    _spriteBatch.Begin();
+
     _state.Draw(gameTime);
 
-    _spriteBatch.Begin();
     _spriteBatch.DrawString(_spriteFont, $"FPS: {_frameRate}", new Vector2(0, 0), Color.Green);
     _spriteBatch.End();
 

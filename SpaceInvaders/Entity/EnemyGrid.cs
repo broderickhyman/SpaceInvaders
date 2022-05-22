@@ -1,5 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using SpaceInvaders.Entity.Enemies;
 using SpaceInvaders.Game;
+using SpaceInvaders.Graphics;
 
 namespace SpaceInvaders.Entity;
 
@@ -22,19 +24,22 @@ internal class EnemyGrid : IEntityGroup
   private readonly EnemyConfiguration _enemyConfig;
   private readonly List<Enemy> _removableEnemies = new();
   private readonly Score _score;
+  private readonly Dictionary<string, Animation> _animations;
 
   public IEnumerable<Enemy> Enemies { get { return _columns.SelectMany(x => x); } }
 
   public EnemyGrid(int cols, int rows,
     GameConfiguration gameConfig,
     EnemyConfiguration enemyConfig,
-    Score score)
+    Score score,
+    Dictionary<string, Animation> animations)
   {
     _cols = cols;
     _rows = rows;
     _gameConfig = gameConfig;
     _enemyConfig = enemyConfig;
     _score = score;
+    _animations = animations;
     Reset();
   }
 
@@ -43,10 +48,10 @@ internal class EnemyGrid : IEntityGroup
     Disposing = false;
     _columns.Clear();
     _bottomEnemies.Clear();
-    const float sideGapPercentage = 0.1f;
+    const float sideGapPercentage = 0.2f;
     var boundingWidth = _gameConfig.WindowWidth * (1 - (sideGapPercentage * 2));
     var xGap = (boundingWidth - (_enemyConfig.Width * _cols)) / _cols;
-    var boundingHeight = _gameConfig.WindowHeight * 0.5f;
+    var boundingHeight = _gameConfig.WindowHeight * 0.4f;
     var yGap = (boundingHeight - (_enemyConfig.Height * _rows)) / _rows;
     var topOffset = _gameConfig.WindowHeight * 0.1f;
     for (var c = 0; c < _cols; c++)
@@ -55,9 +60,28 @@ internal class EnemyGrid : IEntityGroup
       _columns.Add(column);
       for (var r = 0; r < _rows; r++)
       {
-        var enemy = new Enemy(
-          (sideGapPercentage * _gameConfig.WindowWidth) + (c * (_enemyConfig.Width + xGap)), topOffset + (r * (_enemyConfig.Height + yGap)),
-          _gameConfig);
+        Enemy enemy;
+        if (r == 0)
+        {
+          enemy = new TopEnemy(
+            (sideGapPercentage * _gameConfig.WindowWidth) + (c * (_enemyConfig.Width + xGap)), topOffset + (r * (_enemyConfig.Height + yGap)),
+            _gameConfig,
+            _animations);
+        }
+        else if (r >= 1 && r <= 2)
+        {
+          enemy = new MiddleEnemy(
+            (sideGapPercentage * _gameConfig.WindowWidth) + (c * (_enemyConfig.Width + xGap)), topOffset + (r * (_enemyConfig.Height + yGap)),
+            _gameConfig,
+            _animations);
+        }
+        else
+        {
+          enemy = new BottomEnemy(
+            (sideGapPercentage * _gameConfig.WindowWidth) + (c * (_enemyConfig.Width + xGap)), topOffset + (r * (_enemyConfig.Height + yGap)),
+            _gameConfig,
+            _animations);
+        }
         if (r == _rows - 1)
         {
           enemy.BottomEnemy = true;
@@ -109,6 +133,10 @@ internal class EnemyGrid : IEntityGroup
           OffsetEnemies(-ShiftAmount, 0);
         }
       }
+    }
+    foreach (var enemy in Enemies)
+    {
+      enemy.Update(gameTime);
     }
   }
 
@@ -179,6 +207,7 @@ internal class EnemyGrid : IEntityGroup
     foreach (var enemy in Enemies)
     {
       enemy.Rectangle.Offset(x, y);
+      enemy.UpdateFrame();
     }
   }
 

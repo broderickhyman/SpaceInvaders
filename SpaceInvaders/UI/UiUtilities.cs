@@ -38,16 +38,12 @@ internal static class UiUtilities
     Color textColor,
     Color backgroundColor)
   {
-    spriteBatch.Begin();
     spriteBatch.FillRectangle(backgroundRectangle, backgroundColor);
-    spriteBatch.End();
 
-    spriteBatch.Begin();
     spriteBatch.DrawString(font, text,
       backgroundRectangle,
       Alignment.Center,
       textColor);
-    spriteBatch.End();
   }
 }
 

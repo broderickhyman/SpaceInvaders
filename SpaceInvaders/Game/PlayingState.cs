@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Input.InputListeners;
 using SpaceInvaders.Entity;
+using SpaceInvaders.Graphics;
 
 namespace SpaceInvaders.Game;
 internal class PlayingState : State
@@ -21,12 +22,13 @@ internal class PlayingState : State
     EnemyConfiguration enemyConfig,
     SpriteBatch spriteBatch,
     SpriteFont spriteFont,
-    MainGame game) : base(gameConfig, spriteBatch, spriteFont)
+    MainGame game,
+    Dictionary<string, Animation> animations) : base(gameConfig, spriteBatch, spriteFont)
   {
     _enemyConfiguration = enemyConfig;
     _player = new Player(1.5f, _gameConfiguration);
     _score = new Score();
-    _enemyGrid = new EnemyGrid(10, 5, _gameConfiguration, _enemyConfiguration, _score);
+    _enemyGrid = new EnemyGrid(10, 5, _gameConfiguration, _enemyConfiguration, _score, animations);
     _mainGame = game;
   }
 
@@ -39,6 +41,12 @@ internal class PlayingState : State
       {
         _bullets.Add(_enemyBullet);
       }
+    }
+
+    if (!_player.Disposing && _playerBullet == default(Bullet) && Keyboard.GetState().IsKeyDown(Keys.Space))
+    {
+      _playerBullet = new Bullet(_player, _gameConfiguration);
+      _bullets.Add(_playerBullet);
     }
 
     _enemyGrid.Update(gameTime);
@@ -73,32 +81,20 @@ internal class PlayingState : State
 
   public override void Draw(GameTime gameTime)
   {
-    foreach (var bullet in _bullets) { bullet.Draw(_spriteBatch); }
+    foreach (var bullet in _bullets)
+    {
+      bullet.Draw(_spriteBatch);
+    }
     _player.Draw(_spriteBatch);
-
     _enemyGrid.Draw(_spriteBatch);
 
-    _spriteBatch.Begin();
     _spriteBatch.DrawString(_spriteFont, $"Score: {_score.Value,4}", new Vector2(_gameConfiguration.WindowWidth - 300, 0), Color.Green);
-    _spriteBatch.End();
   }
 
   public override void KeyReleased(object sender, KeyboardEventArgs e)
   {
-    switch (e.Key)
-    {
-      case Keys.Space:
-        AttemptFireBullet();
-        break;
-    }
-  }
-
-  private void AttemptFireBullet()
-  {
-    if (!_player.Disposing && _playerBullet == default(Bullet))
-    {
-      _playerBullet = new Bullet(_player, _gameConfiguration);
-      _bullets.Add(_playerBullet);
-    }
+    //switch (e.Key)
+    //{
+    //}
   }
 }

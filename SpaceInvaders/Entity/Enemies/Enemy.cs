@@ -1,11 +1,13 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using SpaceInvaders.Game;
+using SpaceInvaders.Graphics;
 
-namespace SpaceInvaders.Entity;
-
-internal class Enemy : IEntity
+namespace SpaceInvaders.Entity.Enemies;
+internal abstract class Enemy : IEntity
 {
   private RectangleF _rectangle;
+  private readonly Animation _animation;
+  private int _currentFrame;
 
   private readonly float _width;
   private readonly float _height;
@@ -16,11 +18,15 @@ internal class Enemy : IEntity
   public float Speed { get; set; }
   public ref RectangleF Rectangle { get => ref _rectangle; }
 
-  public Enemy(float x, float y, GameConfiguration config)
+  protected Enemy(
+    float x, float y,
+    GameConfiguration config,
+    Animation animation)
   {
     _width = config.WindowWidth / 20;
     _height = config.WindowHeight / 25;
     _rectangle = new RectangleF(x, y, _width, _height);
+    _animation = animation;
   }
 
   public static void Initialize()
@@ -29,6 +35,16 @@ internal class Enemy : IEntity
 
   public void Update(GameTime gameTime)
   {
+    _animation.Update(gameTime);
+  }
+
+  public void UpdateFrame()
+  {
+    _currentFrame++;
+    if (_currentFrame >= _animation.Frames.Length)
+    {
+      _currentFrame = 0;
+    }
   }
 
   public void CheckCollision(Bullet bullet)
@@ -42,10 +58,8 @@ internal class Enemy : IEntity
 
   public void Draw(SpriteBatch spriteBatch)
   {
-    var color = Color;
-    if (BottomEnemy) { color = Color.Red; }
-    spriteBatch.Begin();
-    spriteBatch.FillRectangle(_rectangle, color);
-    spriteBatch.End();
+    //var color = Color;
+    //if (BottomEnemy) { color = Color.Red; }
+    _animation.Draw(spriteBatch, Rectangle, _currentFrame);
   }
 }

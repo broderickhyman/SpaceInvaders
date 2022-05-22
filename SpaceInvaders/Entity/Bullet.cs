@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using SpaceInvaders.Entity.Enemies;
 using SpaceInvaders.Game;
 
 namespace SpaceInvaders.Entity;
@@ -49,8 +50,6 @@ internal class Bullet : IEntity
 
   public void Draw(SpriteBatch spriteBatch)
   {
-    spriteBatch.Begin();
     spriteBatch.FillRectangle(_rectangle, Color);
-    spriteBatch.End();
   }
 }

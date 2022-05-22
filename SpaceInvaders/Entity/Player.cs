@@ -67,9 +67,10 @@ internal class Player : IEntity
 
   public void Draw(SpriteBatch spriteBatch)
   {
-    if (Disposing) { return; }
-    spriteBatch.Begin();
+    if (Disposing)
+    {
+      return;
+    }
     spriteBatch.FillRectangle(_rectangle, Color);
-    spriteBatch.End();
   }
 }
