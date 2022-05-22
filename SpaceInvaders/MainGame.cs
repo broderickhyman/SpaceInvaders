@@ -5,6 +5,7 @@ using SpaceInvaders.Entity;
 using SpaceInvaders.Entity.Enemies;
 using SpaceInvaders.Game;
 using SpaceInvaders.Graphics;
+using SpaceInvaders.Utilities;
 
 namespace SpaceInvaders;
 
@@ -16,14 +17,13 @@ internal class MainGame : Microsoft.Xna.Framework.Game
   private SpriteBatch _spriteBatch;
   private SpriteFont _spriteFont;
   private readonly GraphicsDeviceManager _graphics;
-  private int _frameRate;
-  private int _frameCounter;
-  private TimeSpan _elapsedTime = TimeSpan.Zero;
   private readonly GameConfiguration _gameConfiguration;
   private readonly EnemyConfiguration _enemyConfiguration;
   private State _state;
   private readonly KeyboardListener _keyboardListener;
   private readonly Dictionary<string, Animation> _animations = new();
+  private readonly ActionsPerSecond _frameActions = new();
+  private readonly ActionsPerSecond _updateActions = new();
 
   public MainGame()
   {
@@ -40,6 +40,7 @@ internal class MainGame : Microsoft.Xna.Framework.Game
     Content.RootDirectory = "Content";
     _keyboardListener = new KeyboardListener();
     _keyboardListener.KeyReleased += KeyReleased;
+    //TargetElapsedTime = TimeSpan.FromSeconds(1d / 144d);
   }
 
   /// <summary>
@@ -113,13 +114,7 @@ internal class MainGame : Microsoft.Xna.Framework.Game
     _state.Update(gameTime);
     base.Update(gameTime);
 
-    _elapsedTime += gameTime.ElapsedGameTime;
-    if (_elapsedTime > TimeSpan.FromSeconds(1))
-    {
-      _elapsedTime -= TimeSpan.FromSeconds(1);
-      _frameRate = _frameCounter;
-      _frameCounter = 0;
-    }
+    _updateActions.Action(gameTime);
   }
 
   /// <summary>
@@ -128,14 +123,23 @@ internal class MainGame : Microsoft.Xna.Framework.Game
   /// <param name="gameTime">Provides a snapshot of timing values.</param>
   protected override void Draw(GameTime gameTime)
   {
-    _frameCounter++;
+    _frameActions.Action(gameTime);
     GraphicsDevice.Clear(Color.Black);
 
     _spriteBatch.Begin();
 
     _state.Draw(gameTime);
 
-    _spriteBatch.DrawString(_spriteFont, $"FPS: {_frameRate}", new Vector2(0, 0), Color.Green);
+    const float stringScale = 0.5f;
+    const string fpsString = "FPS";
+    var fpsSize = _spriteFont.MeasureString(fpsString) * stringScale;
+
+    _spriteBatch.DrawString(_spriteFont, $"{fpsString}: {_frameActions.Rate}",
+      new Vector2(0, 0), Color.Green,
+      0f, Vector2.Zero, stringScale, SpriteEffects.None, 0);
+    _spriteBatch.DrawString(_spriteFont, $"UPS: {_updateActions.Rate}",
+      new Vector2(0, fpsSize.Y), Color.Green,
+      0f, Vector2.Zero, stringScale, SpriteEffects.None, 0);
     _spriteBatch.End();
 
     base.Draw(gameTime);

@@ -8,15 +8,15 @@ internal class Player : IEntity
 {
   private RectangleF _rectangle;
   private GameConfiguration _gameConfiguration;
+  private readonly float _speed;
 
   public Color Color { get; } = Color.Green;
   public bool Disposing { get; set; }
-  public float Speed { get; }
   public ref RectangleF Rectangle { get => ref _rectangle; }
 
   public Player(float speed, GameConfiguration gameConfiguration)
   {
-    Speed = speed;
+    _speed = speed;
     _gameConfiguration = gameConfiguration;
     Reset();
   }
@@ -40,11 +40,11 @@ internal class Player : IEntity
     if (Disposing) { return; }
     if (Keyboard.GetState().IsKeyDown(Keys.Left))
     {
-      _rectangle.Offset(-Speed * gameTime.ElapsedGameTime.Milliseconds, 0);
+      _rectangle.Offset(-_speed * gameTime.ElapsedGameTime.Milliseconds, 0);
     }
     if (Keyboard.GetState().IsKeyDown(Keys.Right))
     {
-      _rectangle.Offset(Speed * gameTime.ElapsedGameTime.Milliseconds, 0);
+      _rectangle.Offset(_speed * gameTime.ElapsedGameTime.Milliseconds, 0);
     }
     if (_rectangle.Left < 0)
     {

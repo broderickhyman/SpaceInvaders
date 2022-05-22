@@ -26,7 +26,7 @@ internal class PlayingState : State
     Dictionary<string, Animation> animations) : base(gameConfig, spriteBatch, spriteFont)
   {
     _enemyConfiguration = enemyConfig;
-    _player = new Player(1.5f, _gameConfiguration);
+    _player = new Player(1.0f, _gameConfiguration);
     _score = new Score();
     _enemyGrid = new EnemyGrid(10, 5, _gameConfiguration, _enemyConfiguration, _score, animations);
     _mainGame = game;
@@ -88,7 +88,9 @@ internal class PlayingState : State
     _player.Draw(_spriteBatch);
     _enemyGrid.Draw(_spriteBatch);
 
-    _spriteBatch.DrawString(_spriteFont, $"Score: {_score.Value,4}", new Vector2(_gameConfiguration.WindowWidth - 300, 0), Color.Green);
+    _spriteBatch.DrawString(_spriteFont, $"Score: {_score.Value,4}",
+      new Vector2(_gameConfiguration.WindowWidth - 300, 0), Color.Green,
+      0f, Vector2.Zero, 0.75f, SpriteEffects.None, 0);
   }
 
   public override void KeyReleased(object sender, KeyboardEventArgs e)

@@ -150,7 +150,7 @@ internal class EnemyGrid : IEntityGroup
         if (enemy.Disposing)
         {
           _removableEnemies.Add(enemy);
-          _score.EnemyKilled();
+          _score.EnemyKilled(enemy);
         }
       }
       foreach (var enemy in _removableEnemies)
